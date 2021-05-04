@@ -1,7 +1,6 @@
-#include <iostream>
 #include "encoder.h"
 
-Node* getProbTable(FILE* file)
+Node* getProbTable(std::ifstream &file)
 {
     unsigned char buf[DEFAULT_BLOCK_SIZE];
 
@@ -15,8 +14,12 @@ Node* getProbTable(FILE* file)
 
     size_t i, final_size = 0;
 
-    while((i = fread(buf, sizeof(char), DEFAULT_BLOCK_SIZE, file)) != 0)
+    while(true)
     {
+        file.read(reinterpret_cast<char *>(&buf[0]), DEFAULT_BLOCK_SIZE);
+        if(!(i = file.gcount()))
+            break;
+
         final_size += i;
         for (int j = 0; j < i; ++j)
             table[buf[j]].frequency++;
@@ -68,9 +71,10 @@ std::map<char, std::string>* getCodeTable(Node *symbolData)
     return codes;
 }
 
-void bitEncode(FILE *f0, FILE *f1, Node *headTree, std::map<char, std::string> *codeTable)
+void bitEncode(std::ifstream &f0, std::ofstream &f1, Node *headTree, std::map<char, std::string> *codeTable)
 {
-    fseek(f0, 0, SEEK_SET);
+    f0.clear();
+    f0.seekg (0, std::ios::beg);
     unsigned char packageByte = 0;
     int packageIndex = 0;
 
@@ -129,15 +133,21 @@ void bitEncode(FILE *f0, FILE *f1, Node *headTree, std::map<char, std::string> *
     unsigned char buf[DEFAULT_BLOCK_SIZE];
     size_t i;
 
-    while((i = fread(buf, sizeof(char), DEFAULT_BLOCK_SIZE, f0)) != 0)
+    while(true)
+    {
+        f0.read(reinterpret_cast<char*>(buf), DEFAULT_BLOCK_SIZE);
+        if(!(i = f0.gcount()))
+            break;
+
         for (int j = 0; j < i; ++j)
         {
-            for(auto &sym : (*codeTable)[buf[j]])
-                if(sym == '0')
+            for (auto &sym : (*codeTable)[buf[j]])
+                if (sym == '0')
                     writeBit(f1, 0, &packageByte, &packageIndex);
-                else if(sym == '1')
+                else if (sym == '1')
                     writeBit(f1, 1, &packageByte, &packageIndex);
         }
+    }
     writeLastByte(f1, &packageByte, &packageIndex);
 }
 

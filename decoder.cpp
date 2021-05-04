@@ -1,20 +1,11 @@
 #include "decoder.h"
 
-int nextByteIsEOF(FILE* f0)
+int nextByteIsEOF(std::ifstream &f0)
 {
-    if(feof(f0))
-        return 1;
-
-    char buf2;
-    size_t i = fread(&buf2, sizeof(char), 1, f0);
-    if(!i && feof(f0))
-        return 1;
-    else
-        setAHeadByte((unsigned char)buf2);
-    return 0;
+    return f0.peek() == std::ifstream::traits_type::eof() && f0.eof();
 }
 
-unsigned int getTail(FILE *f0, unsigned char *readByte, int *currentIndex)
+unsigned int getTail(std::ifstream &f0, unsigned char *readByte, int *currentIndex)
 {
     unsigned int value = 0;
     for (int i = 0; i < 3; ++i)
@@ -27,7 +18,7 @@ unsigned int getTail(FILE *f0, unsigned char *readByte, int *currentIndex)
     return value;
 }
 
-void bitDecode(FILE* f0, FILE* f1, unsigned char* readByte, int* currentIndex, Node* tree, int tail)
+void bitDecode(std::ifstream &f0, std::ofstream &f1, unsigned char* readByte, int* currentIndex, Node* tree, int tail)
 {
     unsigned char buf;
     unsigned long long size = 0;
@@ -44,7 +35,7 @@ void bitDecode(FILE* f0, FILE* f1, unsigned char* readByte, int* currentIndex, N
         else
         {
             size += lastSizeCode;
-            fwrite(&buf, sizeof(char), 1, f1);
+            f1.write(reinterpret_cast<const char *>(&buf), 1);
         }
 
         if(size % 8 == tail && nextByteIsEOF(f0))
@@ -55,7 +46,7 @@ void bitDecode(FILE* f0, FILE* f1, unsigned char* readByte, int* currentIndex, N
     }
 }
 
-unsigned char readCode(FILE *f0, const Node* tree, unsigned char *readBytev, int *currentIndex, int* lengthBuf)
+unsigned char readCode(std::ifstream &f0, const Node* tree, unsigned char *readBytev, int *currentIndex, int* lengthBuf)
 {
     Node node = *tree;
     while(node.left || node.right)

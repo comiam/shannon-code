@@ -16,8 +16,8 @@ typedef struct node {
 } Node;
 
 Node* getTree(Node* symbolData, std::map<char, std::string> *codes);
-void writeTree(FILE* f0, Node* headTree, unsigned char* package, int* index);
-Node* readTree(FILE* f0, unsigned char* readByte, int* currentIndex);
+void writeTree(std::ofstream &f0, Node* headTree, unsigned char* package, int* index);
+Node* readTree(std::ifstream &f0, unsigned char* readByte, int* currentIndex);
 void clearTree(Node* headTree);
 
 #endif

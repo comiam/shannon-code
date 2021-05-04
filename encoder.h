@@ -7,9 +7,9 @@
 #include <algorithm>
 #include <cmath>
 
-Node* getProbTable(FILE* file);
+Node* getProbTable(std::ifstream& file);
 std::map<char, std::string>* getCodeTable(Node* symbolData);
-void bitEncode(FILE *f0, FILE *f1, Node *headTree, std::map<char, std::string> *codeTable);
+void bitEncode(std::ifstream &f0, std::ofstream &f1, Node *headTree, std::map<char, std::string> *codeTable);
 unsigned long getCompressedDataSize(Node* headTree, std::map<char, std::string>* codeTable);
 
 #endif

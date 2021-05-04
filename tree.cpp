@@ -1,4 +1,3 @@
-#include <iostream>
 #include "tree.h"
 #include "utils.h"
 
@@ -12,7 +11,7 @@ void clearTree(Node* headTree)
     free(headTree);
 }
 
-Node* readTree(FILE* f0, unsigned char* readBytev, int* currentIndex)
+Node* readTree(std::ifstream &f0, unsigned char* readBytev, int* currentIndex)
 {
     if (readBit(f0, readBytev, currentIndex))
     {
@@ -100,13 +99,13 @@ Node* getTree(Node* symbolData, std::map<char, std::string> *codes)
     return head;
 }
 
-void writeEmptyNode(FILE* f0, unsigned char* package, int* index)
+void writeEmptyNode(std::ofstream &f0, unsigned char* package, int* index)
 {
     writeBit(f0, 1, package, index);
     writeByte(f0, 0, package, index);
 }
 
-void writeTree(FILE* f0, Node* headTree, unsigned char* package, int* index)
+void writeTree(std::ofstream &f0, Node* headTree, unsigned char* package, int* index)
 {
     if(!(headTree->right) && !(headTree->left))
     {

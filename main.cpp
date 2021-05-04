@@ -2,12 +2,12 @@
 #include "encoder.h"
 #include "decoder.h"
 
-int shannon(bool compress, FILE* f0, FILE* f1);
+int shannon(bool compress, std::ifstream& f0, std::ofstream& f1);
 
 int main(int argc, char* argv[])
 {
-    FILE* f0;
-    FILE* f1;
+    std::ifstream f0;
+    std::ofstream f1;
     char* code;
     bool compress;
 
@@ -20,27 +20,24 @@ int main(int argc, char* argv[])
 
         compress = !strcmp("-c", code) || !strcmp("c", code);
 
-        f0 = fopen(argv[2], "rb");
-        f1 = fopen(argv[3], "wb");
+        f0.open(argv[2], std::ios::in | std::ios::binary);
+        f1.open(argv[3], std::ios::out | std::ios::binary);
     }
     else
         argError
 
-    _setmode(_fileno(f0), _O_BINARY);
-    _setmode(_fileno(f1), _O_BINARY);
-
     return shannon(compress, f0, f1);
 }
 
-int shannon(bool compress, FILE* f0, FILE* f1)
+int shannon(bool compress, std::ifstream& f0, std::ofstream& f1)
 {
     if(!f0 || !f1)
     {
         fileError
         if(f0)
-            fclose(f0);
+            f0.close();
         if(f1)
-            fclose(f1);
+            f1.close();
 
         return 0;
     }
@@ -60,25 +57,25 @@ int shannon(bool compress, FILE* f0, FILE* f1)
     {
         unsigned char packageByte = 0;
         int packageIndex = 0;
-        fread(&packageByte, sizeof(char), 1, f0);
+        f0.read(reinterpret_cast<char *>(&packageByte), 1);
 
         auto tail = getTail(f0, &packageByte, &packageIndex);
-        checkErrorReading(fclose(f0), fclose(f1), ;)
+        checkErrorReading(f0.close(), f1.close(), ;)
 
         Node* headTree = readTree(f0, &packageByte, &packageIndex);
-        checkErrorReading(fclose(f0), fclose(f1), clearTree(headTree))
+        checkErrorReading(f0.close(), f1.close(), clearTree(headTree))
 
         gotoNextByte(f0, &packageByte, &packageIndex);
-        checkErrorReading(fclose(f0), fclose(f1), clearTree(headTree))
+        checkErrorReading(f0.close(), f1.close(), clearTree(headTree))
 
         bitDecode(f0, f1, &packageByte, &packageIndex, headTree, tail);
-        checkErrorReading(fclose(f0), fclose(f1), clearTree(headTree))
+        checkErrorReading(f0.close(), f1.close(), clearTree(headTree))
 
         clearTree(headTree);
     }
 
-    fclose(f0);
-    fclose(f1);
+    f0.close();
+    f1.close();
 
     return 0;
 }
